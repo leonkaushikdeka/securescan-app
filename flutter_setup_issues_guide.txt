@@ -1,0 +1,241 @@
+FLUTTER ANDROID EMULATOR SETUP - KNOWN ISSUES & SOLUTIONS
+===========================================================
+Last Updated: January 15, 2026
+
+This document contains common issues encountered when setting up and running Flutter apps on Android emulators, based on real-world troubleshooting experience.
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 1: Flutter Not in PATH
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- "flutter: command not found" error
+- Flutter commands not recognized in terminal
+
+SOLUTION:
+1. Download Flutter SDK from: https://flutter.dev/docs/get-started/install/windows
+2. Extract to C:\flutter
+3. Add to PATH: C:\flutter\bin
+4. Restart terminal or run: refreshenv (in Git Bash)
+
+COMMAND TO ADD PATH (PowerShell as Admin):
+[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\flutter\bin', 'User')
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 2: Android Gradle Plugin (AGP) Incompatible with Java 21
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- Build fails with error about JDK 21
+- Error message mentions: "JdkImageTransform" or "jlink.exe"
+- AGP version less than 8.2.1 with Java 21
+
+SOLUTION:
+File: android/settings.gradle
+Change:
+  id "com.android.application" version "8.1.0" apply false
+To:
+  id "com.android.application" version "8.7.0" apply false
+
+MINIMUM AGP VERSIONS FOR JAVA 21:
+- AGP 8.2.1 or higher required for Java 21+
+- Recommended: AGP 8.7.0 (latest stable as of Jan 2026)
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 3: Gradle Version Too Old for AGP
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- "Minimum supported Gradle version is X. Current version is Y"
+- Build fails after AGP upgrade
+
+SOLUTION:
+File: android/gradle/wrapper/gradle-wrapper.properties
+Change:
+  distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-all.zip
+To:
+  distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-all.zip
+
+GRADLE VERSION COMPATIBILITY:
+- AGP 8.7.0 requires Gradle 8.9+
+- AGP 8.5.x requires Gradle 8.7+
+- AGP 8.3.x requires Gradle 8.4+
+- AGP 8.2.x requires Gradle 8.2+
+- AGP 8.1.x requires Gradle 8.0+
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 4: Android NDK Version Mismatch
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- Plugins require different Android NDK versions
+- Error: "requires Android NDK 27.0.12077973" but project uses older version
+- Plugins affected: flutter_local_notifications, image_picker_android, etc.
+
+SOLUTION:
+File: android/app/build.gradle
+In android block, add:
+  android {
+      ndkVersion = "27.0.12077973"
+      // ... other config
+  }
+
+IMPORTANT: Remove flutter.ndkVersion reference and hardcode the version.
+Current plugins require NDK 27.x as of Jan 2026.
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 5: Core Library Desugaring Required by Dependencies
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- Error: "Dependency requires core library desugaring to be enabled"
+- "coreLibraryDesugaring configuration contains no dependencies"
+
+SOLUTION:
+File: android/app/build.gradle
+1. Enable in compileOptions:
+   android {
+       compileOptions {
+           coreLibraryDesugaringEnabled true
+       }
+   }
+
+2. Add dependency:
+   dependencies {
+       coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.3'
+   }
+
+COMMON DEPENDENCIES REQUIRING THIS:
+- flutter_local_notifications
+- Many AndroidX libraries
+- Newer versions of common plugins
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 6: Android SDK Platform Version Mismatch
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- Warning: "This version only understands SDK XML versions up to 3 but SDK XML file of version 4"
+- Package parsing errors in SDK
+
+SOLUTION:
+Usually a warning only. To fix:
+1. Update Android SDK Command-line Tools in Android Studio SDK Manager
+2. Or suppress by updating to latest SDK platforms:
+   flutter doctor -v
+   # Check Android SDK versions
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 7: Android Licenses Not Accepted
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- "Some Android licenses not accepted"
+- Build fails during dependency resolution
+
+SOLUTION:
+Run:
+  flutter doctor --android-licenses
+
+Accept all licenses by typing 'y' for each prompt.
+
+═══════════════════════════════════════════════════════════════════════
+ISSUE 8: Obsolete Java Source/Target Version Warnings
+═══════════════════════════════════════════════════════════════════════
+SYMPTOM:
+- Warning: "source value 8 is obsolete and will be removed"
+- Warning: "target value 8 is obsolete and will be removed"
+
+SOLUTION:
+File: android/app/build.gradle
+Ensure Java version is 17 or higher:
+  android {
+      compileOptions {
+          sourceCompatibility = JavaVersion.VERSION_17
+          targetCompatibility = JavaVersion.VERSION_17
+      }
+      kotlinOptions {
+          jvmTarget = JavaVersion.VERSION_17
+      }
+  }
+
+═══════════════════════════════════════════════════════════════════════
+PRE-INSTALLATION CHECKLIST
+═══════════════════════════════════════════════════════════════════════
+Before starting a new Flutter project on Android:
+
+[ ] Verify Java 17+ is installed:
+    java -version
+
+[ ] Verify Android SDK is installed and updated:
+    flutter doctor
+
+[ ] Accept all Android licenses:
+    flutter doctor --android-licenses
+
+[ ] Verify Android SDK platforms installed:
+    flutter doctor -v
+    # Should show Android SDK installed with platforms
+
+[ ] Check available devices:
+    flutter devices
+    # Or: flutter emulators
+
+═══════════════════════════════════════════════════════════════════════
+QUICK FIX SEQUENCE (Copy-Paste)
+═══════════════════════════════════════════════════════════════════════
+When facing build issues, apply these in order:
+
+Step 1: Update settings.gradle
+    Find: id "com.android.application" version "8.1.0"
+    Replace: id "com.android.application" version "8.7.0"
+
+Step 2: Update gradle-wrapper.properties
+    Find: gradle-8.7-all.zip
+    Replace: gradle-8.9-all.zip
+
+Step 3: Update app/build.gradle - android block
+    compileSdk = 36
+    ndkVersion = "27.0.12077973"
+
+Step 4: Update app/build.gradle - compileOptions
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    coreLibraryDesugaringEnabled true
+
+Step 5: Add dependencies in app/build.gradle
+    dependencies {
+        coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.3'
+    }
+
+Step 6: Clean and rebuild
+    flutter clean
+    flutter pub get
+    flutter run -d <device_id>
+
+═══════════════════════════════════════════════════════════════════════
+USEFUL COMMANDS
+═══════════════════════════════════════════════════════════════════════
+flutter doctor              # Check Flutter installation and dependencies
+flutter devices             # List connected devices
+flutter emulators           # List available emulators
+flutter run                 # Run app on connected device
+flutter run -d <device>     # Run on specific device
+flutter clean               # Clean build artifacts
+flutter pub get             # Get dependencies
+flutter upgrade             # Upgrade Flutter version
+flutter analyze             # Analyze code for issues
+
+═══════════════════════════════════════════════════════════════════════
+RESOURCES
+═══════════════════════════════════════════════════════════════════════
+Flutter Documentation: https://docs.flutter.dev
+Android Gradle Plugin Releases: https://developer.android.com/studio/releases/gradle-plugin
+Flutter Issue Tracker: https://github.com/flutter/flutter/issues
+Stack Overflow: Search for specific error codes
+
+═══════════════════════════════════════════════════════════════════════
+NOTES
+═══════════════════════════════════════════════════════════════════════
+- Always use AGP 8.2.1+ with Java 21
+- NDK 27.x required for latest Flutter plugins (as of Jan 2026)
+- Core library desugaring required by many modern Android plugins
+- Keep compileSdk and targetSdk updated (currently 36)
+- Use Java 17 for compatibility with latest AGP versions
+
+Last Updated: January 15, 2026
+For updates to this document, check the project repository.
+═══════════════════════════════════════════════════════════════════════

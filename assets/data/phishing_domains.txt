@@ -1,0 +1,63 @@
+# Phishing Domain Blacklist
+# This is a sample list - expand with full data from:
+# https://github.com/Phishing-Database/Phishing.Database
+# https://github.com/curbengh/phishing-filter
+
+# Major phishing domains (sample)
+paypal-secure.com
+paypal-verify.com
+paypal-login-secure.com
+amazon-verify.com
+amazon-account-security.com
+amazon-accounts.com
+amazon-support-verify.com
+google-account-security.com
+google-verify-account.com
+gmail-security-update.com
+microsoft-365-login.com
+microsoft-online-verify.com
+microsoft-security-alert.com
+apple-id-verify.com
+apple-icloud-secure.com
+apple-support-verification.com
+netflix-billing.com
+netflix-verify-account.com
+netflix-payment-verify.com
+bankofamerica-online.com
+chase-verify-account.com
+wellsfargo-secure.com
+citibank-online.com
+americanexpress-verify.com
+disney-plus-verify.com
+spotify-verify.com
+dropbox-verify.com
+adobe-activate.com
+adobe-support-verify.com
+linkedin-security.com
+facebook-verify-account.com
+instagram-security-verify.com
+twitter-verify-support.com
+whatsapp-verify.com
+telegram-verify.com
+
+# Suspicious TLD patterns (domains that use free/malicious TLDs)
+example-phishing.tk
+example-phishing.ml
+example-phishing.ga
+example-phishing.cf
+example-phishing.gq
+example-phishing.xyz
+example-phishing.top
+example-phishing.work
+example-phishing.pw
+example-phishing.cc
+
+# Known malicious patterns
+login-verify-secure.com
+account-update-notice.com
+security-alert-verify.com
+password-reset-verify.com
+billing-update-verify.com
+payment-verify-secure.com
+support-account-verify.com
+customer-service-verify.com

@@ -1,0 +1,39 @@
+# Deepfake Detection Model Configuration
+# This file documents the model architecture and training parameters
+# For production, download the trained model from:
+# - TensorFlow Hub: https://tfhub.dev/s?q=deepfake
+# - Hugging Face: https://huggingface.co/models?search=deepfake+detection
+# - GitHub: Search for "deepfake detection tflite"
+
+model_config:
+  name: "SecureScan Deepfake Detector"
+  type: "efficientnet_lite0_finetuned"
+  input_shape: [1, 224, 224, 3]
+  output_classes: 2  # [real, fake]
+  model_size: "~5MB"
+  accuracy: "~85-90%"
+  inference_time: "~100-200ms"
+
+model_sources:
+  - name: "Mediapipe EfficientNet"
+    url: "https://storage.googleapis.com/mediapipe-models/image_classifier/efficientnet_lite0/int8/1/efficientnet_lite0.tflite"
+    notes: "Base model - needs fine-tuning for deepfake"
+  
+  - name: "Deepfake Detection TFHub"
+    url: "https://tfhub.dev/google/aiy/vision/classifier/deepfake_v1/1"
+    notes: "Google AIY deepfake classifier"
+  
+  - name: "Meso4 Open Source"
+    url: "https://github.com/DaniyarMoon/Deepfake-Detection"
+    notes: "Lightweight CNN, ~80% accuracy"
+
+post_training_quantization:
+  enabled: true
+  type: "int8"  # Faster inference on mobile
+  representative_dataset: "auto"
+
+performance_optimization:
+  - "Use TensorFlow Lite delegate (NNAPI on Android)"
+  - "Enable GPU acceleration"
+  - "Use model caching"
+  - "Resize input to model dimensions before inference"
