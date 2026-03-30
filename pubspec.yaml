@@ -1,9 +1,9 @@
-name: securescanapp
+name: securescan
 description: Local Deepfake and Phishing Detection App with Background Scanning
 
 publish_to: 'none'
 
-version: 2.0.0+1
+version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -12,35 +12,20 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Core ML
   tflite_flutter: ^0.12.1
-  
-  # Image processing
   image_picker: ^1.1.2
   image: ^4.2.0
-  
-  # Database
-  sqflite: ^2.3.3
-  
-  # Background processing
-  workmanager: ^0.5.2
-  
-  # Notifications
-  flutter_local_notifications: ^17.2.2
-  
-  # Permissions
   permission_handler: ^11.3.0
-  
-  # Storage
-  shared_preferences: ^2.2.3
+  sqflite: ^2.3.3
   path: ^1.9.0
   path_provider: ^2.1.3
   url_launcher: ^6.3.0
-  
-  # UI
+  shared_preferences: ^2.2.3
+  workmanager: ^0.5.2
+  flutter_local_notifications: ^17.2.2
+
   cupertino_icons: ^1.0.2
   google_fonts: ^6.2.1
-  uuid: ^4.2.1
 
 dev_dependencies:
   flutter_test:

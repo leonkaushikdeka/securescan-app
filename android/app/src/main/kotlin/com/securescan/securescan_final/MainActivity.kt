@@ -1,4 +1,4 @@
-package com.securescan.securescanapp_new
+package com.securescan.securescan_final
 
 import io.flutter.embedding.android.FlutterActivity
 
