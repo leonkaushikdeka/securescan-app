@@ -291,6 +291,16 @@ class _DeepfakeScanPageState extends State<DeepfakeScanPage> {
     if (!_isInitialized || _isProcessing) return;
     setState(() => _result = null);
 
+    final cameraStatus = await Permission.camera.request();
+    if (cameraStatus.isDenied) {
+      _showError('Camera permission is required to take photos');
+      return;
+    }
+    if (cameraStatus.isPermanentlyDenied) {
+      _showCameraPermissionDialog();
+      return;
+    }
+
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
@@ -309,6 +319,26 @@ class _DeepfakeScanPageState extends State<DeepfakeScanPage> {
     } catch (e) {
       _showError('Failed to capture photo: $e');
     }
+  }
+
+  void _showCameraPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permission Required'),
+        content: const Text('Camera permission is permanently denied. Please enable it in app settings.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _scanImage() async {
@@ -2090,6 +2120,32 @@ class PhishingDetector {
   };
 
   Future<void> loadBlacklist() async {
+    try {
+      final data = await rootBundle.loadString('assets/data/phishing_domains.txt');
+      final lines = data.split('\n');
+      for (final line in lines) {
+        final trimmed = line.trim();
+        if (trimmed.isNotEmpty && !trimmed.startsWith('#')) {
+          _blacklist.add(trimmed);
+        }
+      }
+    } catch (_) {
+      // Fallback if asset file is not available
+    }
+    if (_blacklist.isEmpty) {
+      _loadHardcodedBlacklist();
+    }
+    // TODO: Expand domain list to 10,000+ entries from:
+    // https://github.com/Phishing-Database/Phishing.Database
+    // https://github.com/curbengh/phishing-filter
+    try {
+      await _updateBlacklist();
+    } catch (_) {
+      // Offline or unavailable, use local list
+    }
+  }
+
+  void _loadHardcodedBlacklist() {
     _blacklist = {
       'paypal-secure.com', 'paypal-verify.com', 'paypal-login-secure.com',
       'paypal-accounts.com', 'secure-paypal.com', 'paypal-support.net',
@@ -2116,6 +2172,27 @@ class PhishingDetector {
       'account-suspended.com', 'password-expired.com', 'security-alert.com',
       'verify-now.com', 'confirm-account.com', 'update-payment.com',
     };
+  }
+
+  Future<void> _updateBlacklist() async {
+    final client = HttpClient();
+    client.connectionTimeout = const Duration(seconds: 5);
+    try {
+      // TODO: Replace with actual blacklist URL
+      // final request = await client.getUrl(Uri.parse('https://phishing-urls.example.com/blacklist.txt'));
+      // final response = await request.close();
+      // if (response.statusCode == 200) {
+      //   final data = await response.transform(utf8.decoder).join();
+      //   for (final line in data.split('\n')) {
+      //     final trimmed = line.trim();
+      //     if (trimmed.isNotEmpty && !trimmed.startsWith('#')) {
+      //       _blacklist.add(trimmed);
+      //     }
+      //   }
+      // }
+    } finally {
+      client.close();
+    }
   }
 
   Future<PhishingResult> detect(String url) async {
@@ -2525,7 +2602,7 @@ class ScanHistoryItem {
       type: map['type'],
       content: map['content'],
       result: map['result'],
-      confidence: map['confidence'].toDouble(),
+      confidence: (map['confidence'] as num?)?.toDouble() ?? 0.0,
       details: map['details'],
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
     );
